@@ -24,7 +24,7 @@ To train MoE on GLUE, run:
 
 To train DY-Conv on ImageNet, run: 
 
-`./PAD-Net-master/moe/tasks/text-classification/run_glue_pad.py` 
+`./moe/tasks/text-classification/run_glue_pad.py` 
 
 ## Citation
 
