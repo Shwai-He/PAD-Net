@@ -1,5 +1,5 @@
 # PAD-Net: An Efficient Framework for Dynamic Networks
-The source code of " PAD-Net: An Efficient Framework for Dynamic Networks
+The source code of "PAD-Net: An Efficient Framework for Dynamic Networks
  (ACL 2023)":
 
  ```
@@ -7,7 +7,9 @@ PAD-Net: An Efficient Framework for Dynamic Networks
 Shwai He, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
 ACL 2023 Main Conference. 
 ```
-
+<p align="center">
+  <img src="Figures/PAD-Net.png" width="800">  
+</p>
 ## Requirements
 - torch==1.13.1
 - transformers==4.17.0
