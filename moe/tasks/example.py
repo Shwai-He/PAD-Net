@@ -1,9 +1,15 @@
 import sys
-sys.path = ['/user/sunsiqi/hs/PAD-Net-master/moe', '/user/sunsiqi/hs/PAD-Net-master/moe/petl',
-            '/user/sunsiqi/hs/PAD-Net-master/moe/transformers', '/user/sunsiqi/hs/PAD-Net-master/apex'] + \
-           sys.path # todo add your own path of transformers if you use local transformer packages.
+from pathlib import Path
 
-from apex.contrib.sparsity import ASP
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_MOE_ROOT = _SCRIPT_DIR.parent
+if str(_MOE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_MOE_ROOT))
+
+try:
+    from apex.contrib.sparsity import ASP
+except ImportError:
+    ASP = None
 from transformers.models.layers import MoE, SMoE, AMoE, STRMoE, PadMoE, PadMoE_Structured
 from transformers import (
     AutoConfig,
@@ -14,10 +20,8 @@ import torch
 from torch import optim
 from tqdm import tqdm
 from torch.nn import DataParallel
-import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '7'
-device = torch.device('cuda:0')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 input_size = 3072
 hidden_size = 768
 config = AutoConfig.from_pretrained('bert-base-cased')
@@ -27,10 +31,14 @@ setattr(config, 'Lambda', 'none')
 setattr(config, 'moe_level', 'token')
 
 # model = DataParallel(PadMoE(input_size, hidden_size, config)).to(device)
-model = DataParallel(MoE(input_size, hidden_size, config)).to(device)
+if torch.cuda.is_available():
+    model = DataParallel(MoE(input_size, hidden_size, config)).to(device)
+else:
+    model = MoE(input_size, hidden_size, config).to(device)
 # model = PadMoE_Structured(input_size, hidden_size, config).to(device)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9) # Define optimizer
-ASP.prune_trained_model(model, optimizer)
+if ASP is not None:
+    ASP.prune_trained_model(model, optimizer)
 
 max_length, batch_size = 128, 64
 steps = 1000

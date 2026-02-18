@@ -102,7 +102,7 @@ parser.add_argument('--label-smoothing', type=float, default=0.1, help='label sm
 parser.add_argument('--mixup', type=float, default=0.0, help='mixup or not')
 parser.add_argument('--mode', type=str, default='large', help='large or small MobileNetV3')
 parser.add_argument('--dropout', type=float, default=None, help='drop out ratio.')
-parser.add_argument('--device_ids', type=str, default="4")
+parser.add_argument('--device_ids', type=str, default="0")
 parser.add_argument('--config_file', type=str, default="")
 parser.add_argument('--sparsity', type=float, default=0.5)
 parser.add_argument('--r', action='store_true')
@@ -169,6 +169,8 @@ def set_random_seeds(random_seed=0):
 def main():
     global args, best_prec1, step_note, device
     args = parser.parse_args()
+    if not args.config_file:
+        raise ValueError("`--config_file` is required and must point to a valid YAML config.")
     config = parse_config(args.config_file)
     if args.seed is not None:
         random.seed(args.seed)
@@ -180,14 +182,12 @@ def main():
                       'You may see unexpected behavior when restarting '
                       'from checkpoints.')
     set_random_seeds(random_seed=0)
-    device_ids = [int(device_id) for device_id in args.device_ids.split(' ')]
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.device_ids.replace(' ', ',')
-    # device = torch.device("cuda:{}".format(device_ids[0]))
-    device = torch.device("cuda:0")
+    device_id_tokens = args.device_ids.replace(",", " ").split()
+    device_ids = [int(device_id) for device_id in device_id_tokens] if device_id_tokens else [0]
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(device_id) for device_id in device_ids)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     args.rank = args.world_size = len(device_ids)
-    args.distributed = args.world_size > 1
-    args.distributed = False
-    # torch.cuda.set_device(device_ids[0])
+    args.distributed = args.world_size > 1 and torch.cuda.is_available()
     print("=> creating model '{}'".format(args.arch))
     model = model_entry(config.model)
     if not args.distributed:
@@ -196,8 +196,7 @@ def main():
             # model.cuda()
             model.to(device)
         else:
-            # model = torch.nn.DataParallel(model, device_ids=device_ids)
-            model = torch.nn.DataParallel(model)
+            model = torch.nn.DataParallel(model, device_ids=list(range(len(device_ids))))
             model.to(device)
 
     else:

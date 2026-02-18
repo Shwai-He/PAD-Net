@@ -21,7 +21,11 @@ import os
 import random
 import sys
 
-sys.path.append('') # todo add your own path of transformers if you use local transformer packages.
+# Ensure local `moe/transformers` and `moe/petl` are importable when running this script directly.
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_MOE_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, "..", ".."))
+if _MOE_ROOT not in sys.path:
+    sys.path.insert(0, _MOE_ROOT)
 
 from dataclasses import dataclass, field
 from typing import Optional
