@@ -1,14 +1,28 @@
-# PAD-Net: An Efficient Framework for Dynamic Networks
+<h1 align="center">PAD-Net: An Efficient Framework for Dynamic Networks</h1>
 
-[![Paper](https://img.shields.io/badge/Paper-ACL%202023-red)](https://aclanthology.org/2023.acl-long.803/)
-![Conference](https://img.shields.io/badge/ACL-2023-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-1.13.1-orange)
-![Python](https://img.shields.io/badge/Python-3.8%2B-green)
+<p align="center">
+  <a href="https://aclanthology.org/2023.acl-long.803/"><img src="https://img.shields.io/badge/Paper-ACL%202023-red" alt="Paper"></a>
+  <img src="https://img.shields.io/badge/ACL-2023-blue" alt="ACL 2023">
+  <img src="https://img.shields.io/badge/PyTorch-1.13.1-orange" alt="PyTorch 1.13.1">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-green" alt="Python 3.8+">
+</p>
 
-[Shwai He](https://shwai-he.github.io/), Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
+<p align="center">
+  <a href="#-news">📰 News</a> •
+  <a href="#-why-this-repo">✨ Why</a> •
+  <a href="#-core-ideas">🔍 Ideas</a> •
+  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-installation">⚙️ Installation</a>
+</p>
 
-> Official implementation of **PAD-Net: An Efficient Framework for Dynamic Networks** (ACL 2023).  
-> PAD-Net introduces partial dynamic parameterization for dynamic networks (e.g., DY-Conv and MoE), aiming to reduce redundancy and deployment cost while preserving or improving performance.
+<p align="center">
+  <a href="https://shwai-he.github.io/">Shwai He</a>, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
+</p>
+
+## 📖 Introduction
+
+Official implementation of **PAD-Net: An Efficient Framework for Dynamic Networks** (ACL 2023).  
+PAD-Net introduces partial dynamic parameterization for dynamic networks (e.g., DY-Conv and MoE), aiming to reduce redundancy and deployment cost while preserving or improving performance.
 
 <p align="center">
   <img src="Figures/PAD-Net.png" width="800" alt="PAD-Net overview">
