@@ -1,7 +1,7 @@
-<h1 align="center">PAD-Net: An Efficient Framework for Dynamic Networks</h1>
+<h1 align="center">[ACL 2023] PAD-Net: An Efficient Framework for Dynamic Networks</h1>
 
 <p align="center">
-  <a href="https://aclanthology.org/2023.acl-long.803/"><img src="https://img.shields.io/badge/Paper-ACL%202023-red" alt="Paper"></a>
+  <a href="https://arxiv.org/abs/2211.05528"><img src="https://img.shields.io/badge/arXiv-2211.05528-b31b1b.svg" alt="arXiv"></a>
   <img src="https://img.shields.io/badge/ACL-2023-blue" alt="ACL 2023">
   <img src="https://img.shields.io/badge/PyTorch-1.13.1-orange" alt="PyTorch 1.13.1">
   <img src="https://img.shields.io/badge/Python-3.8%2B-green" alt="Python 3.8+">
