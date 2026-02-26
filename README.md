@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shwai-he.github.io/">Shwai He</a>, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
+  Shwai He, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
 </p>
 
 ## 📖 Introduction
