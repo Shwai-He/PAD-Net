@@ -8,15 +8,15 @@
 </p>
 
 <p align="center">
+  <a href="https://shwai-he.github.io/">Shwai He</a>, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
+</p>
+
+<p align="center">
   <a href="#-news">📰 News</a> •
   <a href="#-why-this-repo">✨ Why</a> •
   <a href="#-core-ideas">🔍 Ideas</a> •
   <a href="#-quick-start">🚀 Quick Start</a> •
   <a href="#-installation">⚙️ Installation</a>
-</p>
-
-<p align="center">
-  Shwai He, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao
 </p>
 
 ## 📖 Introduction
