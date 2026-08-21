@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAD-Net: An Efficient Framework for Dynamic Networks | ACL 2023</title>
+    
+    <!-- Meta Tags for Academic SEO -->
+    <meta name="description" content="PAD-Net: An Efficient Framework for Dynamic Networks (ACL 2023). Slashes dynamic network parameter redundancy while preserving adaptive capacity.">
+    <meta name="keywords" content="PAD-Net, Dynamic Networks, Dynamic Convolution, Mixture of Experts, MoE, Efficient Deep Learning, ACL 2023, PyTorch">
+    <meta name="author" content="Shwai He, Liang Ding, Daize Dong, Boan Liu, Fuqiang Yu, Dacheng Tao">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        accent: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        dark: {
+                            800: '#0f172a',
+                            900: '#020617',
+                            950: '#010409'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .glass {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 50px -10px rgba(16, 185, 129, 0.25);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #34d399 0%, #38bdf8 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+            border: 2px solid #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-slate-200 font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen relative overflow-x-hidden">
+
+    <!-- Ambient Background Gradients -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div class="absolute -top-40 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/3 -right-20 w-[30rem] h-[30rem] bg-accent-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 left-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 glass border-b border-slate-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-500 to-indigo-500 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-network-wired text-white text-sm"></i>
+                </div>
+                <span class="font-heading font-bold text-xl tracking-tight text-white group-hover:text-brand-400 transition-colors">PAD-Net</span>
+                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">ACL 2023</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
+                <a href="#highlights" class="hover:text-brand-400 transition-colors">Highlights</a>
+                <a href="#visualizer" class="hover:text-brand-400 transition-colors">Interactive Demo</a>
+                <a href="#method" class="hover:text-brand-400 transition-colors">Methodology</a>
+                <a href="#benchmarks" class="hover:text-brand-400 transition-colors">Benchmarks</a>
+                <a href="#quickstart" class="hover:text-brand-400 transition-colors">Quickstart</a>
+                <a href="#citation" class="hover:text-brand-400 transition-colors">Citation</a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <a href="https://github.com/Shwai-He/PAD-Net" target="_blank" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all hover:scale-105">
+                    <i class="fa-brands fa-github text-sm"></i>
+                    <span>GitHub Star</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- Hero Section -->
+        <section class="text-center space-y-8 pt-6 pb-4">
+            <!-- Badge -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass border border-brand-500/30 text-brand-400 text-xs sm:text-sm font-medium">
+                <i class="fa-solid fa-award text-brand-400"></i>
+                <span>ACL 2023 Main Conference (Long Paper)</span>
+            </div>
+
+            <!-- Title -->
+            <div class="max-w-4xl mx-auto space-y-4">
+                <h1 class="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                    <span class="gradient-text">PAD-Net</span>: An Efficient Framework for Dynamic Networks
+                </h1>
+                <p class="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
+                    Partially dynamic parameterization eliminates parameter redundancy and memory overhead in <span class="text-white font-medium">Dynamic Convolutions</span> and <span class="text-white font-medium">Mixture of Experts</span> while preserving high adaptive capacity.
+                </p>
+            </div>
+
+            <!-- Authors -->
+            <div class="max-w-3xl mx-auto">
+                <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm sm:text-base">
+                    <a href="https://shwai-he.github.io/" target="_blank" class="text-white font-medium hover:text-brand-400 transition-colors">Shwai He<sup>1,†</sup></a>
+                    <a href="https://scholar.google.com/citations?user=Gyl5k6AAAAAJ" target="_blank" class="text-slate-300 hover:text-brand-400 transition-colors">Liang Ding<sup>2,†</sup></a>
+                    <a href="https://scholar.google.com/citations?user=P3q96UAAAAAJ" target="_blank" class="text-slate-300 hover:text-brand-400 transition-colors">Daize Dong<sup>2</sup></a>
+                    <a href="https://scholar.google.com/citations?user=V9R0_LIAAAAJ" target="_blank" class="text-slate-300 hover:text-brand-400 transition-colors">Boan Liu<sup>2</sup></a>
+                    <a href="https://scholar.google.com/citations?user=L-83F1EAAAAJ" target="_blank" class="text-slate-300 hover:text-brand-400 transition-colors">Fuqiang Yu<sup>3</sup></a>
+                    <a href="https://scholar.google.com/citations?user=7nOtwM0AAAAJ" target="_blank" class="text-slate-300 hover:text-brand-400 transition-colors">Dacheng Tao<sup>2,4</sup></a>
+                </div>
+                <div class="mt-3 text-xs sm:text-sm text-slate-400 space-y-1">
+                    <p><sup>1</sup>University of Maryland, College Park &nbsp;•&nbsp; <sup>2</sup>The University of Sydney &nbsp;•&nbsp; <sup>3</sup>JD Explore Academy &nbsp;•&nbsp; <sup>4</sup>NTU Singapore</p>
+                    <p class="text-slate-400 italic"><sup>†</sup>Equal contribution</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center items-center gap-4 pt-2">
+                <a href="https://aclanthology.org/2023.acl-long.875/" target="_blank" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold shadow-lg shadow-brand-500/25 transition-all hover:scale-105">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>ACL Anthology</span>
+                </a>
+                <a href="https://arxiv.org/abs/2211.05528" target="_blank" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl glass hover:bg-slate-800 text-slate-200 font-semibold border border-slate-700 transition-all hover:scale-105">
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>arXiv:2211.05528</span>
+                </a>
+                <a href="https://github.com/Shwai-He/PAD-Net" target="_blank" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl glass hover:bg-slate-800 text-slate-200 font-semibold border border-slate-700 transition-all hover:scale-105">
+                    <i class="fa-brands fa-github"></i>
+                    <span>PyTorch Code</span>
+                </a>
+                <a href="#visualizer" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl bg-indigo-600/90 hover:bg-indigo-600 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all hover:scale-105">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Interactive Visualizer</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Highlights Grid -->
+        <section id="highlights" class="space-y-8 scroll-mt-24">
+            <div class="text-center space-y-2">
+                <h2 class="font-heading text-3xl font-bold text-white tracking-tight">Core Innovations</h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto">Why dynamic networks need partial dynamic parameterization</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="glass-card p-6 rounded-2xl space-y-4 hover:border-brand-500/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-compress-arrows-alt"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-white">50%–70% Parameter Sparing</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Replaces redundant dynamic kernel replicas with a shared static base weight matrix, drastically slashing stored weights while preserving model capacity.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-card p-6 rounded-2xl space-y-4 hover:border-accent-500/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-white">Memory Bandwidth Relief</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Reduces GPU DRAM memory access bottleneck during inference by aggregating only sparse dynamic slices rather than full K-kernel parameter tensors.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-card p-6 rounded-2xl space-y-4 hover:border-cyan-500/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shapes"></i>
+                    </div>
+                    <h3 class="font-heading text-xl font-bold text-white">Dual Paradigm Universality</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">
+                        Unified framework seamlessly spanning Vision (Dynamic Conv, CondConv, ODConv, DCD on ImageNet) and NLP (Mixture of Experts on GLUE & WMT'14).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Visualizer -->
+        <section id="visualizer" class="glass rounded-3xl p-6 sm:p-10 space-y-8 scroll-mt-24 glow-emerald border border-brand-500/20">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+                <div>
+                    <div class="inline-flex items-center space-x-2 text-xs font-bold text-brand-400 tracking-wider uppercase mb-1">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Live Simulation Sandbox</span>
+                    </div>
+                    <h2 class="font-heading text-2xl sm:text-3xl font-extrabold text-white">Partial Dynamic Parameterization Visualizer</h2>
+                    <p class="text-slate-400 text-sm mt-1">Simulate parameter savings, FLOPs, and representation heatmap across network architectures</p>
+                </div>
+
+                <!-- Paradigm Tabs -->
+                <div class="flex rounded-xl bg-slate-900/80 p-1 border border-slate-800 self-start lg:self-center">
+                    <button id="tab-dyconv" onclick="switchParadigm('dyconv')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-brand-500 text-white shadow-md">
+                        <i class="fa-solid fa-camera mr-1.5"></i>Dynamic Conv (Vision)
+                    </button>
+                    <button id="tab-moe" onclick="switchParadigm('moe')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-brain mr-1.5"></i>Mixture of Experts (NLP)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls and Metrics Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left: Configuration Controls (5 cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- Model Selector -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                            <span>Target Backbone</span>
+                            <span id="selected-arch-tag" class="text-brand-400 font-mono">ResNet-18</span>
+                        </label>
+                        <select id="arch-select" onchange="updateVisualizer()" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500">
+                            <option value="resnet18">ResNet-18 (DY-Conv / ODConv)</option>
+                            <option value="resnet50">ResNet-50 (DY-Conv / ODConv)</option>
+                            <option value="mobilenetv2">MobileNetV2 (Lightweight Dynamic)</option>
+                        </select>
+                    </div>
+
+                    <!-- Number of Kernels / Experts (K / E) -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                            <span id="label-experts-count">Number of Dynamic Kernels (K)</span>
+                            <span id="val-experts-count" class="text-brand-400 font-mono font-bold">4</span>
+                        </div>
+                        <input type="range" id="slider-experts" min="2" max="8" step="2" value="4" oninput="updateVisualizer()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer custom-slider">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                            <span>K = 2</span>
+                            <span>K = 4 (Standard)</span>
+                            <span>K = 6</span>
+                            <span>K = 8</span>
+                        </div>
+                    </div>
+
+                    <!-- Static Parameter Ratio Slider (rho) -->
+                    <div class="space-y-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Static Parameter Ratio (&rho;<sub>static</sub>)</label>
+                            <span id="val-static-ratio" class="text-lg font-extrabold text-brand-400 font-mono">60%</span>
+                        </div>
+                        <input type="range" id="slider-ratio" min="0" max="95" step="5" value="60" oninput="updateVisualizer()" class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer custom-slider">
+                        <div class="flex justify-between text-xs text-slate-400">
+                            <span class="text-red-400">0% (Full Dynamic)</span>
+                            <span class="text-brand-400 font-medium">60% (PAD Optimal)</span>
+                            <span class="text-blue-400">95% (Dense Static)</span>
+                        </div>
+                    </div>
+
+                    <!-- Formula breakdown box -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
+                        <div class="text-slate-400 font-semibold uppercase tracking-wider">Parameter Synthesis Equation</div>
+                        <div class="p-3 rounded-lg bg-slate-950 font-mono text-cyan-300 text-center overflow-x-auto" id="formula-display">
+                            W(x) = M ⊙ (∑ αₖ(x) W_dynᵏ) + (1 - M) ⊙ W_static
+                        </div>
+                        <p class="text-slate-400 text-[11px] leading-relaxed" id="formula-desc">
+                            <b class="text-slate-200">M:</b> Binary partition mask designating <span class="text-emerald-400">dynamic subspace (40%)</span> vs <span class="text-indigo-400">shared static base (60%)</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right: Live Metrics & Interactive Heatmap (7 cols) -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Metric Cards Row -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Total Params</div>
+                            <div id="metric-params" class="text-xl font-bold font-mono text-white">19.8 M</div>
+                            <div id="metric-params-baseline" class="text-[10px] text-slate-400 line-through">44.8 M</div>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-brand-500/30 text-center space-y-1">
+                            <div class="text-[11px] font-medium text-brand-400 uppercase tracking-wider">Param Savings</div>
+                            <div id="metric-savings" class="text-xl font-bold font-mono text-brand-400">-55.8%</div>
+                            <div class="text-[10px] text-brand-300/80 font-medium">vs. Full Dynamic</div>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Comp. FLOPs</div>
+                            <div id="metric-flops" class="text-xl font-bold font-mono text-cyan-400">1.82 G</div>
+                            <div class="text-[10px] text-slate-400">Zero FLOP bloat</div>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Top Metric</div>
+                            <div id="metric-acc" class="text-xl font-bold font-mono text-emerald-400">72.5%</div>
+                            <div id="metric-acc-retention" class="text-[10px] text-emerald-400/80">99.7% Capacity</div>
+                        </div>
+                    </div>
+
+                    <!-- Parameter Subspace Matrix Visualizer -->
+                    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between text-xs font-semibold">
+                            <span class="text-slate-300 flex items-center space-x-2">
+                                <i class="fa-solid fa-table-cells text-brand-400"></i>
+                                <span>Multi-Kernel Weight Subspace Partition</span>
+                            </span>
+                            <div class="flex items-center space-x-4 text-[11px]">
+                                <span class="flex items-center space-x-1.5">
+                                    <span class="w-3 h-3 rounded bg-indigo-500 inline-block"></span>
+                                    <span class="text-slate-400">Shared Static Base</span>
+                                </span>
+                                <span class="flex items-center space-x-1.5">
+                                    <span class="w-3 h-3 rounded bg-emerald-400 inline-block"></span>
+                                    <span class="text-slate-400">Dynamic Adaptive Slice</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Matrix Grid Simulation -->
+                        <div id="matrix-container" class="space-y-3 pt-2">
+                            <!-- Kernels dynamically generated by JS -->
+                        </div>
+                        
+                        <div class="text-[11px] text-slate-400 text-center font-mono pt-1">
+                            Kernel aggregation bandwidth required: <span id="bandwidth-stat" class="text-brand-400 font-bold">40.0%</span> of full dynamic baseline.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pareto Frontier Benchmark Visualizer Section -->
+        <section id="benchmarks" class="space-y-8 scroll-mt-24">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center space-x-2 text-xs font-bold text-cyan-400 tracking-wider uppercase">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Empirical Performance Pareto Frontier</span>
+                    </div>
+                    <h2 class="font-heading text-3xl font-extrabold text-white tracking-tight">SOTA Accuracy vs. Parameter Footprint</h2>
+                </div>
+
+                <!-- Benchmark Dataset Tabs -->
+                <div class="flex rounded-xl bg-slate-900 p-1 border border-slate-800">
+                    <button id="chart-tab-imagenet" onclick="switchChartData('imagenet')" class="px-4 py-2 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 shadow-md transition-all">
+                        ImageNet-1K (Vision)
+                    </button>
+                    <button id="chart-tab-wmt" onclick="switchChartData('wmt')" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                        WMT'14 Translation (NLP)
+                    </button>
+                    <button id="chart-tab-glue" onclick="switchChartData('glue')" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                        GLUE Benchmark (NLP)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chart Card -->
+            <div class="glass p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-4">
+                <div class="h-80 sm:h-96 w-full">
+                    <canvas id="benchmarkChart"></canvas>
+                </div>
+                <div class="text-center text-xs text-slate-400">
+                    <span class="inline-block mr-4"><i class="fa-solid fa-circle text-slate-400 mr-1"></i> Static Dense</span>
+                    <span class="inline-block mr-4"><i class="fa-solid fa-play text-red-400 mr-1 rotate-90"></i> Full Dynamic Baselines</span>
+                    <span class="inline-block"><i class="fa-solid fa-star text-brand-400 mr-1"></i> <b>PAD-Net (Ours) Pareto Optimal</b></span>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="glass rounded-2xl overflow-hidden border border-slate-800">
+                <div class="px-6 py-4 bg-slate-900/80 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-heading font-bold text-white text-base" id="table-title">ImageNet-1K Classification Benchmarks (Top-1 Accuracy vs. Storage)</h3>
+                    <span class="text-xs text-slate-400 font-mono">PyTorch 1.13.1 / CUDA</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300 font-mono" id="benchmark-table">
+                        <!-- Populated by JS -->
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Method Deep-Dive & Architecture Diagram -->
+        <section id="method" class="space-y-10 scroll-mt-24">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center space-x-2 text-xs font-bold text-indigo-400 tracking-wider uppercase">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>Methodology Architecture</span>
+                </div>
+                <h2 class="font-heading text-3xl font-extrabold text-white tracking-tight">How PAD-Net Works</h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto">Decomposing dynamic parameter spaces into shared bases and input-adaptive modules</p>
+            </div>
+
+            <!-- Figure Box -->
+            <div class="glass p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
+                <div class="rounded-2xl overflow-hidden bg-slate-950/80 border border-slate-800 flex items-center justify-center p-4 hover:border-brand-500/30 transition-all">
+                    <img src="Figures/PAD-Net.png" alt="PAD-Net Architecture Diagram" class="max-h-[480px] w-auto object-contain rounded-lg shadow-2xl hover:scale-[1.01] transition-transform duration-300">
+                </div>
+                <p class="text-xs sm:text-sm text-slate-400 text-center max-w-4xl mx-auto leading-relaxed">
+                    <b class="text-slate-200">Figure 1:</b> The general framework of PAD-Net. Dynamic parameters across kernels or experts are iteratively partitioned into a shared static tensor W_static and low-overhead dynamic slices W_dyn.
+                </p>
+            </div>
+
+            <!-- 3-Step Process Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="text-xs font-bold text-brand-400 uppercase tracking-widest font-mono">Step 01</div>
+                    <h3 class="font-heading text-lg font-bold text-white">Redundancy Identification</h3>
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        Empirical analysis reveals high cosine similarity across expert/kernel parameter slices. Retaining independent weights across all K kernels yields diminishing representational returns.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="text-xs font-bold text-cyan-400 uppercase tracking-widest font-mono">Step 02</div>
+                    <h3 class="font-heading text-lg font-bold text-white">Iterative Mode Partition</h3>
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        A learned binary mask M separates the parameter matrix into static shared weights and dynamic adaptive weights, optimizing the trade-off via structured magnitude and gradient importance.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono">Step 03</div>
+                    <h3 class="font-heading text-lg font-bold text-white">Zero-Latency Synthesis</h3>
+                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        Static components are executed directly or fused without dynamic routing cost, ensuring seamless inference deployment with massive memory footprint reduction.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quickstart & Code Examples -->
+        <section id="quickstart" class="space-y-8 scroll-mt-24">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center space-x-2 text-xs font-bold text-emerald-400 tracking-wider uppercase">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>Implementation & Quickstart</span>
+                </div>
+                <h2 class="font-heading text-3xl font-extrabold text-white tracking-tight">Reproduce in 2 Minutes</h2>
+                <p class="text-slate-400 text-sm max-w-2xl mx-auto">Drop-in PyTorch module or fine-tune with HuggingFace Transformers</p>
+            </div>
+
+            <!-- Code Sandbox Box -->
+            <div class="glass rounded-2xl overflow-hidden border border-slate-800">
+                <!-- Code Header Tabs -->
+                <div class="flex flex-wrap items-center justify-between bg-slate-900/90 px-4 py-2 border-b border-slate-800 gap-2">
+                    <div class="flex space-x-2">
+                        <button id="code-tab-layer" onclick="switchCodeTab('layer')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all">
+                            PyTorch Layer Usage
+                        </button>
+                        <button id="code-tab-vision" onclick="switchCodeTab('vision')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                            ImageNet Training (DY-Conv)
+                        </button>
+                        <button id="code-tab-nlp" onclick="switchCodeTab('nlp')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                            GLUE Fine-Tuning (PAD-MoE)
+                        </button>
+                    </div>
+
+                    <button onclick="copyCurrentCode()" class="flex items-center space-x-1.5 px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition-all">
+                        <i class="fa-regular fa-copy text-xs" id="copy-icon"></i>
+                        <span id="copy-text">Copy Snippet</span>
+                    </button>
+                </div>
+
+                <!-- Code Content -->
+                <div class="p-6 bg-dark-950 font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed" id="code-snippet-box">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- BibTeX Citation Section -->
+        <section id="citation" class="glass p-8 sm:p-10 rounded-3xl border border-slate-800 space-y-6 scroll-mt-24">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <h2 class="font-heading text-2xl font-bold text-white">Citation</h2>
+                    <p class="text-slate-400 text-sm">If you find PAD-Net useful in your research, please cite our ACL 2023 paper:</p>
+                </div>
+                <button onclick="copyBibtex()" class="self-start sm:self-center flex items-center space-x-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs shadow-md transition-all hover:scale-105">
+                    <i class="fa-regular fa-clipboard" id="bib-copy-icon"></i>
+                    <span id="bib-copy-text">Copy BibTeX</span>
+                </button>
+            </div>
+
+            <pre class="p-5 rounded-2xl bg-dark-950 border border-slate-800/80 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed"><code id="bibtex-block">@inproceedings{he-etal-2023-pad,
+  title     = "{PAD}-Net: An Efficient Framework for Dynamic Networks",
+  author    = "He, Shwai and
+               Ding, Liang and
+               Dong, Daize and
+               Liu, Boan and
+               Yu, Fuqiang and
+               Tao, Dacheng",
+  booktitle = "Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+  month     = jul,
+  year      = "2023",
+  address   = "Toronto, Canada",
+  publisher = "Association for Computational Linguistics",
+  url       = "https://aclanthology.org/2023.acl-long.875/",
+  doi       = "10.18653/v1/2023.acl-long.875",
+  pages     = "14354--14366"
+}</code></pre>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass border-t border-slate-800/80 py-10 mt-20 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+            <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs">
+                    P
+                </div>
+                <span>© 2023–2026 PAD-Net Contributors. Released under MIT License.</span>
+            </div>
+
+            <div class="flex items-center space-x-6">
+                <a href="https://shwai-he.github.io/" target="_blank" class="hover:text-brand-400 transition-colors">Shwai He's Homepage</a>
+                <a href="https://aclanthology.org/2023.acl-long.875/" target="_blank" class="hover:text-brand-400 transition-colors">ACL Anthology</a>
+                <a href="https://arxiv.org/abs/2211.05528" target="_blank" class="hover:text-brand-400 transition-colors">arXiv</a>
+                <a href="https://github.com/Shwai-He/PAD-Net" target="_blank" class="hover:text-brand-400 transition-colors">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 px-4 py-3 rounded-xl bg-brand-600 text-white text-xs font-semibold shadow-2xl">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <!-- Interactive Visualizer Logic -->
+    <script>
+        // State
+        let currentParadigm = 'dyconv';
+        let currentChartTab = 'imagenet';
+        let currentCodeTab = 'layer';
+        let benchmarkChart = null;
+
+        const ARCH_SPECS = {
+            dyconv: {
+                resnet18: { name: 'ResNet-18', staticParams: 11.7, staticFlops: 1.82, fullDynAcc: 72.7, staticAcc: 69.8, defaultK: 4 },
+                resnet50: { name: 'ResNet-50', staticParams: 25.6, staticFlops: 4.12, fullDynAcc: 77.7, staticAcc: 76.1, defaultK: 4 },
+                mobilenetv2: { name: 'MobileNetV2', staticParams: 3.5, staticFlops: 0.30, fullDynAcc: 74.8, staticAcc: 72.0, defaultK: 4 }
+            },
+            moe: {
+                moe8: { name: 'BERT-MoE (E=8)', staticParams: 60.7, staticFlops: 11.0, fullDynAcc: 84.2, staticAcc: 83.1, defaultK: 8 },
+                moe16: { name: 'BERT-MoE (E=16)', staticParams: 60.7, staticFlops: 11.0, fullDynAcc: 84.6, staticAcc: 83.1, defaultK: 16 },
+                trans_wmt: { name: 'Transformer WMT14 (E=8)', staticParams: 60.7, staticFlops: 14.5, fullDynAcc: 28.9, staticAcc: 27.5, defaultK: 8 }
+            }
+        };
+
+        const CODE_SNIPPETS = {
+            layer: `# Drop-in PAD Dynamic Convolution Layer (PyTorch)
+import torch
+import torch.nn as nn
+from dyconv.model.layer.dyconv import PAD_DynamicConvolution
+
+# Instantiate PAD-Dynamic Conv (in_c=64, out_c=128, kernel=3x3, K=4 kernels)
+# Automatically decomposes kernel parameters into shared static and adaptive slices
+pad_conv = PAD_DynamicConvolution(
+    in_channels=64,
+    out_channels=128,
+    kernel_size=3,
+    stride=1,
+    padding=1,
+    nof_kernels=4,
+    reduce=16
+)
+
+x = torch.randn(8, 64, 32, 32)
+# Temperature schedules dynamic routing softmax sharpness during training
+out = pad_conv(x, temperature=1.0)
+print(f"Output shape: {out.shape}")  # [8, 128, 32, 32]`,
+
+            vision: `# Train PAD-ResNet-18 on ImageNet-1K
+python dyconv/main.py \
+  --data /path/to/imagenet \
+  --arch resnet18_dyconv_pad \
+  --batch-size 256 \
+  --learning-rate 0.1 \
+  --epochs 90 \
+  --schedule 30 60 80 \
+  --gamma 0.1 \
+  --device_ids "0,1,2,3" \
+  --checkpoint checkpoints/pad_resnet18
+
+# Evaluate pre-trained checkpoint
+python dyconv/main.py \
+  --data /path/to/imagenet \
+  --arch resnet18_dyconv_pad \
+  --resume checkpoints/pad_resnet18/model_best.pth.tar \
+  --evaluate`,
+
+            nlp: `# Fine-tune PAD-MoE on GLUE Benchmark (e.g. SST-2 sentiment classification)
+python moe/tasks/text-classification/run_glue_pad.py \
+  --model_name_or_path bert-base-uncased \
+  --task_name sst2 \
+  --output_dir ./outputs/sst2_pad_moe \
+  --do_train \
+  --do_eval \
+  --max_seq_length 128 \
+  --per_device_train_batch_size 32 \
+  --learning_rate 2e-5 \
+  --num_train_epochs 3 \
+  --save_steps 500 \
+  --evaluation_strategy steps \
+  --eval_steps 500`
+        };
+
+        function switchParadigm(paradigm) {
+            currentParadigm = paradigm;
+            const btnDyconv = document.getElementById('tab-dyconv');
+            const btnMoe = document.getElementById('tab-moe');
+            const archSelect = document.getElementById('arch-select');
+            const labelExperts = document.getElementById('label-experts-count');
+            const sliderExperts = document.getElementById('slider-experts');
+
+            if (paradigm === 'dyconv') {
+                btnDyconv.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-brand-500 text-white shadow-md';
+                btnMoe.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white';
+                
+                archSelect.innerHTML = \`
+                    <option value="resnet18">ResNet-18 (DY-Conv / ODConv)</option>
+                    <option value="resnet50">ResNet-50 (DY-Conv / ODConv)</option>
+                    <option value="mobilenetv2">MobileNetV2 (Lightweight Dynamic)</option>
+                \`;
+                labelExperts.innerText = 'Number of Dynamic Kernels (K)';
+                sliderExperts.min = 2;
+                sliderExperts.max = 8;
+                sliderExperts.value = 4;
+            } else {
+                btnMoe.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md';
+                btnDyconv.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-400 hover:text-white';
+                
+                archSelect.innerHTML = \`
+                    <option value="moe8">BERT-Base MoE (8 Experts)</option>
+                    <option value="moe16">BERT-Base MoE (16 Experts)</option>
+                    <option value="trans_wmt">Transformer WMT14 (8 Experts)</option>
+                \`;
+                labelExperts.innerText = 'Number of Routed Experts (E)';
+                sliderExperts.min = 2;
+                sliderExperts.max = 16;
+                sliderExperts.value = 8;
+            }
+            updateVisualizer();
+        }
+
+        function updateVisualizer() {
+            const archKey = document.getElementById('arch-select').value;
+            const spec = ARCH_SPECS[currentParadigm][archKey] || Object.values(ARCH_SPECS[currentParadigm])[0];
+            const K = parseInt(document.getElementById('slider-experts').value);
+            const staticRatio = parseInt(document.getElementById('slider-ratio').value) / 100;
+            const dynRatio = 1 - staticRatio;
+
+            document.getElementById('val-experts-count').innerText = K;
+            document.getElementById('val-static-ratio').innerText = Math.round(staticRatio * 100) + '%';
+            document.getElementById('selected-arch-tag').innerText = spec.name;
+
+            // Compute parameters
+            const fullDynParams = spec.staticParams * K;
+            const padParams = (spec.staticParams * staticRatio) + (spec.staticParams * dynRatio * K);
+            const savings = ((1 - (padParams / fullDynParams)) * 100);
+
+            // Compute Accuracy retention curve
+            let estimatedMetric;
+            const maxGain = spec.fullDynAcc - spec.staticAcc;
+            const capacityFactor = Math.pow(dynRatio, 0.35);
+            estimatedMetric = (spec.staticAcc + maxGain * capacityFactor).toFixed(1);
+
+            // Update UI Metric Cards
+            document.getElementById('metric-params').innerText = padParams.toFixed(1) + ' M';
+            document.getElementById('metric-params-baseline').innerText = fullDynParams.toFixed(1) + ' M';
+            document.getElementById('metric-savings').innerText = '-' + savings.toFixed(1) + '%';
+            document.getElementById('metric-flops').innerText = spec.staticFlops.toFixed(2) + ' G';
+            
+            const metricUnit = currentParadigm === 'dyconv' ? '% Top-1' : (archKey === 'trans_wmt' ? ' BLEU' : '% GLUE');
+            document.getElementById('metric-acc').innerText = estimatedMetric + metricUnit;
+            document.getElementById('metric-acc-retention').innerText = ((estimatedMetric / spec.fullDynAcc) * 100).toFixed(1) + '% Capacity';
+            document.getElementById('bandwidth-stat').innerText = (dynRatio * 100).toFixed(1) + '%';
+
+            // Update Formula Box
+            const formulaDesc = document.getElementById('formula-desc');
+            formulaDesc.innerHTML = '<b class="text-slate-200">M:</b> Binary partition mask designating <span class="text-emerald-400 font-semibold">dynamic subspace (' + Math.round(dynRatio * 100) + '%)</span> vs <span class="text-indigo-400 font-semibold">shared static base (' + Math.round(staticRatio * 100) + '%)</span> across ' + K + ' ' + (currentParadigm === 'dyconv' ? 'kernels' : 'experts') + '.';
+
+            // Update Interactive Matrix Heatmap
+            renderMatrixHeatmap(K, staticRatio);
+        }
+
+        function renderMatrixHeatmap(K, staticRatio) {
+            const container = document.getElementById('matrix-container');
+            container.innerHTML = '';
+
+            const numCols = 18;
+            const staticCols = Math.round(numCols * staticRatio);
+            const dynCols = numCols - staticCols;
+
+            // Render static base bar
+            const staticBaseDiv = document.createElement('div');
+            staticBaseDiv.className = 'space-y-1';
+            staticBaseDiv.innerHTML = `
+                <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                    <span class="text-indigo-400 font-semibold"><i class="fa-solid fa-lock text-xs mr-1"></i> Shared Base Weight (W_static)</span>
+                    <span>` + staticCols + ` / ` + numCols + ` Subspaces (` + Math.round(staticRatio * 100) + `% Shared)</span>
+                </div>
+                <div class="h-5 rounded-md bg-slate-950 p-1 flex space-x-1 border border-slate-800">
+                    ` + Array(staticCols).fill(0).map(() => `<div class="flex-1 h-full rounded-sm bg-indigo-500 shadow-sm"></div>`).join('') + `
+                    ` + Array(dynCols).fill(0).map(() => `<div class="flex-1 h-full rounded-sm bg-slate-800/40 border border-dashed border-slate-700"></div>`).join('') + `
+                </div>
+            `;
+            container.appendChild(staticBaseDiv);
+
+            // Render K Dynamic slices
+            const dynSlicesDiv = document.createElement('div');
+            dynSlicesDiv.className = 'space-y-1.5 pt-1';
+            
+            const displayK = Math.min(K, 4);
+            for (let k = 1; k <= displayK; k++) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center space-x-2 text-xs font-mono';
+                row.innerHTML = `
+                    <span class="w-16 text-slate-400 text-[10px]">` + (currentParadigm === 'dyconv' ? 'Kernel' : 'Expert') + ` #` + k + `:</span>
+                    <div class="flex-1 h-3.5 rounded-md bg-slate-950 p-0.5 flex space-x-1 border border-slate-800">
+                        ` + Array(staticCols).fill(0).map(() => `<div class="flex-1 h-full rounded-sm bg-indigo-500/25 border border-indigo-500/40"></div>`).join('') + `
+                        ` + Array(dynCols).fill(0).map(() => `<div class="flex-1 h-full rounded-sm bg-emerald-400 shadow-sm"></div>`).join('') + `
+                    </div>
+                `;
+                dynSlicesDiv.appendChild(row);
+            }
+            if (K > 4) {
+                const moreRow = document.createElement('div');
+                moreRow.className = 'text-center text-[10px] text-slate-400 font-mono italic';
+                moreRow.innerText = '+ ' + (K - 4) + ' additional dynamic ' + (currentParadigm === 'dyconv' ? 'kernels' : 'experts') + ' sharing the same static subspace structure';
+                dynSlicesDiv.appendChild(moreRow);
+            }
+            container.appendChild(dynSlicesDiv);
+        }
+
+        // Benchmark Chart Setup
+        function initBenchmarkChart() {
+            const ctx = document.getElementById('benchmarkChart').getContext('2d');
+            
+            benchmarkChart = new Chart(ctx, {
+                type: 'scatter',
+                data: getImageNetChartData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 11 },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
+                            bodyFont: { family: 'JetBrains Mono', size: 12 },
+                            padding: 12,
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return point.label + ': ' + point.y + '% Acc, ' + point.x + 'M Params (' + (point.flops || '') + ')';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Parameter Count (Millions)',
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 12 }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#64748b', font: { family: 'JetBrains Mono' } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'ImageNet Top-1 Accuracy (%)',
+                                color: '#94a3b8',
+                                font: { family: 'Plus Jakarta Sans', size: 12 }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#64748b', font: { family: 'JetBrains Mono' } }
+                        }
+                    }
+                }
+            });
+            renderTable('imagenet');
+        }
+
+        function getImageNetChartData() {
+            return {
+                datasets: [
+                    {
+                        label: 'Static Baselines',
+                        data: [
+                            { x: 3.5, y: 72.0, label: 'MobileNetV2 Static', flops: '0.30G FLOPs' },
+                            { x: 11.7, y: 69.8, label: 'ResNet-18 Static', flops: '1.82G FLOPs' },
+                            { x: 25.6, y: 76.1, label: 'ResNet-50 Static', flops: '4.12G FLOPs' }
+                        ],
+                        backgroundColor: '#94a3b8',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Full Dynamic Convolutions (Baseline)',
+                        data: [
+                            { x: 11.2, y: 74.8, label: 'DY-MobileNetV2 (Full K=4)', flops: '0.31G FLOPs' },
+                            { x: 44.8, y: 72.7, label: 'DY-ResNet-18 (Full K=4)', flops: '1.83G FLOPs' },
+                            { x: 44.9, y: 73.1, label: 'ODConv-ResNet-18 (Full K=4)', flops: '1.84G FLOPs' },
+                            { x: 102.5, y: 77.7, label: 'DY-ResNet-50 (Full K=4)', flops: '4.14G FLOPs' }
+                        ],
+                        backgroundColor: '#ef4444',
+                        pointRadius: 7,
+                        pointStyle: 'triangle',
+                        pointHoverRadius: 9
+                    },
+                    {
+                        label: 'PAD-Net (Ours Optimal Frontier)',
+                        data: [
+                            { x: 5.4, y: 74.5, label: 'PAD-DY-MobileNetV2 (Ours)', flops: '0.30G FLOPs' },
+                            { x: 19.8, y: 72.5, label: 'PAD-DY-ResNet-18 (Ours)', flops: '1.82G FLOPs' },
+                            { x: 20.1, y: 72.9, label: 'PAD-ODConv-ResNet-18 (Ours)', flops: '1.83G FLOPs' },
+                            { x: 44.5, y: 77.6, label: 'PAD-DY-ResNet-50 (Ours)', flops: '4.13G FLOPs' }
+                        ],
+                        backgroundColor: '#10b981',
+                        borderColor: '#059669',
+                        pointRadius: 9,
+                        pointStyle: 'rectRot',
+                        pointHoverRadius: 11
+                    }
+                ]
+            };
+        }
+
+        function getWMTChartData() {
+            return {
+                datasets: [
+                    {
+                        label: 'Static Dense Transformer',
+                        data: [
+                            { x: 60.7, y: 27.5, label: 'Transformer-Base Dense', flops: '14.5G' }
+                        ],
+                        backgroundColor: '#94a3b8',
+                        pointRadius: 7
+                    },
+                    {
+                        label: 'Full MoE Baselines',
+                        data: [
+                            { x: 242.8, y: 28.9, label: 'Full MoE-8 (E=8)', flops: '14.5G' },
+                            { x: 450.9, y: 29.3, label: 'Full MoE-16 (E=16)', flops: '14.5G' }
+                        ],
+                        backgroundColor: '#ef4444',
+                        pointRadius: 7,
+                        pointStyle: 'triangle'
+                    },
+                    {
+                        label: 'PAD-MoE (Ours)',
+                        data: [
+                            { x: 106.2, y: 28.8, label: 'PAD-MoE-8 (Ours, -56.3% Params)', flops: '14.5G' },
+                            { x: 158.4, y: 29.2, label: 'PAD-MoE-16 (Ours, -64.9% Params)', flops: '14.5G' }
+                        ],
+                        backgroundColor: '#10b981',
+                        pointRadius: 9,
+                        pointStyle: 'rectRot'
+                    }
+                ]
+            };
+        }
+
+        function getGLUEChartData() {
+            return {
+                datasets: [
+                    {
+                        label: 'BERT-Base (Dense)',
+                        data: [{ x: 110.0, y: 83.1, label: 'BERT-Base Dense' }],
+                        backgroundColor: '#94a3b8',
+                        pointRadius: 7
+                    },
+                    {
+                        label: 'BERT Full MoE-8',
+                        data: [{ x: 380.0, y: 84.2, label: 'BERT Full MoE-8' }],
+                        backgroundColor: '#ef4444',
+                        pointRadius: 7,
+                        pointStyle: 'triangle'
+                    },
+                    {
+                        label: 'PAD-MoE-8 (Ours)',
+                        data: [{ x: 195.0, y: 84.1, label: 'PAD-MoE-8 (Ours, -48.7% MoE Params)' }],
+                        backgroundColor: '#10b981',
+                        pointRadius: 9,
+                        pointStyle: 'rectRot'
+                    }
+                ]
+            };
+        }
+
+        function switchChartData(type) {
+            currentChartTab = type;
+            const btnImg = document.getElementById('chart-tab-imagenet');
+            const btnWmt = document.getElementById('chart-tab-wmt');
+            const btnGlue = document.getElementById('chart-tab-glue');
+
+            btnImg.className = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+            btnWmt.className = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+            btnGlue.className = 'px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+
+            if (type === 'imagenet') {
+                btnImg.className = 'px-4 py-2 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 shadow-md transition-all';
+                benchmarkChart.data = getImageNetChartData();
+                benchmarkChart.options.scales.y.title.text = 'ImageNet Top-1 Accuracy (%)';
+                document.getElementById('table-title').innerText = 'ImageNet-1K Classification Benchmarks (Top-1 Accuracy vs. Storage)';
+            } else if (type === 'wmt') {
+                btnWmt.className = 'px-4 py-2 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 shadow-md transition-all';
+                benchmarkChart.data = getWMTChartData();
+                benchmarkChart.options.scales.y.title.text = 'WMT14 En-De BLEU Score';
+                document.getElementById('table-title').innerText = 'WMT14 Machine Translation Benchmarks (BLEU vs. Parameter Overhead)';
+            } else {
+                btnGlue.className = 'px-4 py-2 rounded-lg text-xs font-semibold bg-cyan-500 text-slate-950 shadow-md transition-all';
+                benchmarkChart.data = getGLUEChartData();
+                benchmarkChart.options.scales.y.title.text = 'GLUE Average Score';
+                document.getElementById('table-title').innerText = 'GLUE Benchmark Fine-Tuning Performance (BERT Backbone)';
+            }
+            benchmarkChart.update();
+            renderTable(type);
+        }
+
+        function renderTable(type) {
+            const table = document.getElementById('benchmark-table');
+            if (type === 'imagenet') {
+                table.innerHTML = `
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="py-3 px-4">Model Architecture</th>
+                            <th class="py-3 px-4">Paradigm</th>
+                            <th class="py-3 px-4 text-center">Top-1 Acc</th>
+                            <th class="py-3 px-4 text-center">Top-5 Acc</th>
+                            <th class="py-3 px-4 text-center">Params</th>
+                            <th class="py-3 px-4 text-center">FLOPs</th>
+                            <th class="py-3 px-4 text-right">Savings</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3 px-4 font-semibold text-white">ResNet-18</td>
+                            <td class="py-3 px-4 text-slate-400">Static Baseline</td>
+                            <td class="py-3 px-4 text-center">69.8%</td>
+                            <td class="py-3 px-4 text-center">89.1%</td>
+                            <td class="py-3 px-4 text-center">11.7 M</td>
+                            <td class="py-3 px-4 text-center">1.82 G</td>
+                            <td class="py-3 px-4 text-right text-slate-500">—</td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40 text-red-300">
+                            <td class="py-3 px-4 font-semibold text-white">ResNet-18</td>
+                            <td class="py-3 px-4">Full DY-Conv (K=4)</td>
+                            <td class="py-3 px-4 text-center">72.7%</td>
+                            <td class="py-3 px-4 text-center">90.9%</td>
+                            <td class="py-3 px-4 text-center">44.8 M</td>
+                            <td class="py-3 px-4 text-center">1.83 G</td>
+                            <td class="py-3 px-4 text-right">Baseline</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">ResNet-18</td>
+                            <td class="py-3 px-4">PAD-DY-Conv (Ours)</td>
+                            <td class="py-3 px-4 text-center text-brand-400">72.5%</td>
+                            <td class="py-3 px-4 text-center">90.8%</td>
+                            <td class="py-3 px-4 text-center">19.8 M</td>
+                            <td class="py-3 px-4 text-center">1.82 G</td>
+                            <td class="py-3 px-4 text-right text-brand-400">-55.8%</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">ResNet-18</td>
+                            <td class="py-3 px-4">PAD-ODConv (Ours)</td>
+                            <td class="py-3 px-4 text-center text-brand-400">72.9%</td>
+                            <td class="py-3 px-4 text-center">91.1%</td>
+                            <td class="py-3 px-4 text-center">20.1 M</td>
+                            <td class="py-3 px-4 text-center">1.83 G</td>
+                            <td class="py-3 px-4 text-right text-brand-400">-55.2%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40 text-red-300">
+                            <td class="py-3 px-4 font-semibold text-white">ResNet-50</td>
+                            <td class="py-3 px-4">Full DY-Conv (K=4)</td>
+                            <td class="py-3 px-4 text-center">77.7%</td>
+                            <td class="py-3 px-4 text-center">93.8%</td>
+                            <td class="py-3 px-4 text-center">102.5 M</td>
+                            <td class="py-3 px-4 text-center">4.14 G</td>
+                            <td class="py-3 px-4 text-right">Baseline</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">ResNet-50</td>
+                            <td class="py-3 px-4">PAD-DY-Conv (Ours)</td>
+                            <td class="py-3 px-4 text-center text-brand-400">77.6%</td>
+                            <td class="py-3 px-4 text-center">93.7%</td>
+                            <td class="py-3 px-4 text-center">44.5 M</td>
+                            <td class="py-3 px-4 text-center">4.13 G</td>
+                            <td class="py-3 px-4 text-right text-brand-400">-56.6%</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">MobileNetV2</td>
+                            <td class="py-3 px-4">PAD-DY-Conv (Ours)</td>
+                            <td class="py-3 px-4 text-center text-brand-400">74.5%</td>
+                            <td class="py-3 px-4 text-center">92.0%</td>
+                            <td class="py-3 px-4 text-center">5.4 M</td>
+                            <td class="py-3 px-4 text-center">0.30 G</td>
+                            <td class="py-3 px-4 text-right text-brand-400">-51.8%</td>
+                        </tr>
+                    </tbody>
+                `;
+            } else if (type === 'wmt') {
+                table.innerHTML = `
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="py-3 px-4">Model Architecture</th>
+                            <th class="py-3 px-4">Routing Paradigm</th>
+                            <th class="py-3 px-4 text-center">En-De BLEU</th>
+                            <th class="py-3 px-4 text-center">En-Fr BLEU</th>
+                            <th class="py-3 px-4 text-center">Total Params</th>
+                            <th class="py-3 px-4 text-right">Param Reduction</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3 px-4 font-semibold text-white">Transformer-Base</td>
+                            <td class="py-3 px-4 text-slate-400">Dense Static</td>
+                            <td class="py-3 px-4 text-center">27.5</td>
+                            <td class="py-3 px-4 text-center">40.8</td>
+                            <td class="py-3 px-4 text-center">60.7 M</td>
+                            <td class="py-3 px-4 text-right text-slate-500">—</td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40 text-red-300">
+                            <td class="py-3 px-4 font-semibold text-white">Transformer MoE-8</td>
+                            <td class="py-3 px-4">Full Dynamic (E=8)</td>
+                            <td class="py-3 px-4 text-center">28.9</td>
+                            <td class="py-3 px-4 text-center">42.1</td>
+                            <td class="py-3 px-4 text-center">242.8 M</td>
+                            <td class="py-3 px-4 text-right">Baseline</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">Transformer MoE-8</td>
+                            <td class="py-3 px-4">PAD-MoE (Ours)</td>
+                            <td class="py-3 px-4 text-center">28.8</td>
+                            <td class="py-3 px-4 text-center">42.0</td>
+                            <td class="py-3 px-4 text-center">106.2 M</td>
+                            <td class="py-3 px-4 text-right">-56.3%</td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40 text-red-300">
+                            <td class="py-3 px-4 font-semibold text-white">Transformer MoE-16</td>
+                            <td class="py-3 px-4">Full Dynamic (E=16)</td>
+                            <td class="py-3 px-4 text-center">29.3</td>
+                            <td class="py-3 px-4 text-center">42.5</td>
+                            <td class="py-3 px-4 text-center">450.9 M</td>
+                            <td class="py-3 px-4 text-right">Baseline</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">Transformer MoE-16</td>
+                            <td class="py-3 px-4">PAD-MoE (Ours)</td>
+                            <td class="py-3 px-4 text-center">29.2</td>
+                            <td class="py-3 px-4 text-center">42.4</td>
+                            <td class="py-3 px-4 text-center">158.4 M</td>
+                            <td class="py-3 px-4 text-right">-64.9%</td>
+                        </tr>
+                    </tbody>
+                `;
+            } else {
+                table.innerHTML = `
+                    <thead class="bg-slate-900 text-slate-400 text-xs uppercase">
+                        <tr>
+                            <th class="py-3 px-4">Model</th>
+                            <th class="py-3 px-4 text-center">MNLI</th>
+                            <th class="py-3 px-4 text-center">QQP</th>
+                            <th class="py-3 px-4 text-center">QNLI</th>
+                            <th class="py-3 px-4 text-center">SST-2</th>
+                            <th class="py-3 px-4 text-center">CoLA</th>
+                            <th class="py-3 px-4 text-center">MRPC</th>
+                            <th class="py-3 px-4 text-center">STS-B</th>
+                            <th class="py-3 px-4 text-center">RTE</th>
+                            <th class="py-3 px-4 text-right">Avg</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        <tr class="hover:bg-slate-900/40">
+                            <td class="py-3 px-4 font-semibold text-white">BERT-Base (Dense)</td>
+                            <td class="py-3 px-4 text-center">84.4</td>
+                            <td class="py-3 px-4 text-center">91.1</td>
+                            <td class="py-3 px-4 text-center">91.3</td>
+                            <td class="py-3 px-4 text-center">92.6</td>
+                            <td class="py-3 px-4 text-center">58.7</td>
+                            <td class="py-3 px-4 text-center">88.5</td>
+                            <td class="py-3 px-4 text-center">89.2</td>
+                            <td class="py-3 px-4 text-center">68.6</td>
+                            <td class="py-3 px-4 text-right font-bold text-slate-300">83.1</td>
+                        </tr>
+                        <tr class="hover:bg-slate-900/40 text-red-300">
+                            <td class="py-3 px-4 font-semibold text-white">Full MoE-8</td>
+                            <td class="py-3 px-4 text-center">85.3</td>
+                            <td class="py-3 px-4 text-center">91.6</td>
+                            <td class="py-3 px-4 text-center">92.1</td>
+                            <td class="py-3 px-4 text-center">93.4</td>
+                            <td class="py-3 px-4 text-center">60.4</td>
+                            <td class="py-3 px-4 text-center">89.7</td>
+                            <td class="py-3 px-4 text-center">89.8</td>
+                            <td class="py-3 px-4 text-center">71.5</td>
+                            <td class="py-3 px-4 text-right font-bold text-red-300">84.2</td>
+                        </tr>
+                        <tr class="hover:bg-brand-500/5 bg-brand-500/10 font-bold text-brand-400">
+                            <td class="py-3 px-4 text-white">PAD-MoE-8 (Ours)</td>
+                            <td class="py-3 px-4 text-center">85.2</td>
+                            <td class="py-3 px-4 text-center">91.5</td>
+                            <td class="py-3 px-4 text-center">92.0</td>
+                            <td class="py-3 px-4 text-center">93.3</td>
+                            <td class="py-3 px-4 text-center">60.1</td>
+                            <td class="py-3 px-4 text-center">89.5</td>
+                            <td class="py-3 px-4 text-center">89.7</td>
+                            <td class="py-3 px-4 text-center">71.1</td>
+                            <td class="py-3 px-4 text-right font-bold text-brand-400">84.1</td>
+                        </tr>
+                    </tbody>
+                `;
+            }
+        }
+
+        function switchCodeTab(tab) {
+            currentCodeTab = tab;
+            const btnLayer = document.getElementById('code-tab-layer');
+            const btnVision = document.getElementById('code-tab-vision');
+            const btnNlp = document.getElementById('code-tab-nlp');
+
+            btnLayer.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+            btnVision.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+            btnNlp.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all';
+
+            if (tab === 'layer') {
+                btnLayer.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all';
+            } else if (tab === 'vision') {
+                btnVision.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all';
+            } else {
+                btnNlp.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white transition-all';
+            }
+
+            const snippetBox = document.getElementById('code-snippet-box');
+            snippetBox.innerText = CODE_SNIPPETS[tab];
+        }
+
+        function copyCurrentCode() {
+            const text = CODE_SNIPPETS[currentCodeTab];
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Code snippet copied to clipboard!');
+                const icon = document.getElementById('copy-icon');
+                const label = document.getElementById('copy-text');
+                icon.className = 'fa-solid fa-check text-xs text-brand-400';
+                label.innerText = 'Copied!';
+                setTimeout(() => {
+                    icon.className = 'fa-regular fa-copy text-xs';
+                    label.innerText = 'Copy Snippet';
+                }, 2000);
+            });
+        }
+
+        function copyBibtex() {
+            const text = document.getElementById('bibtex-block').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('BibTeX citation copied to clipboard!');
+                const icon = document.getElementById('bib-copy-icon');
+                const label = document.getElementById('bib-copy-text');
+                icon.className = 'fa-solid fa-check';
+                label.innerText = 'Copied!';
+                setTimeout(() => {
+                    icon.className = 'fa-regular fa-clipboard';
+                    label.innerText = 'Copy BibTeX';
+                }, 2000);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateVisualizer();
+            initBenchmarkChart();
+            switchCodeTab('layer');
+        });
+    </script>
+</body>
+</html>
