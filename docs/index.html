@@ -124,7 +124,7 @@
             </nav>
 
             <div class="flex items-center space-x-3">
-                <a href="https://github.com/Shwai-He/PAD-Net" target="_blank" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all hover:scale-105">
+                <a href="https://github.com/Shwai-He/PAD-Net" target="_blank" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-300 shadow-sm text-xs font-semibold border border-slate-700 transition-all hover:scale-105">
                     <i class="fa-brands fa-github text-sm"></i>
                     <span>GitHub Star</span>
                 </a>
@@ -266,7 +266,7 @@
                             <span>Target Backbone</span>
                             <span id="selected-arch-tag" class="text-brand-400 font-mono">ResNet-18</span>
                         </label>
-                        <select id="arch-select" onchange="updateVisualizer()" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500">
+                        <select id="arch-select" onchange="updateVisualizer()" class="w-full bg-white border border-slate-300 text-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500">
                             <option value="resnet18">ResNet-18 (DY-Conv / ODConv)</option>
                             <option value="resnet50">ResNet-50 (DY-Conv / ODConv)</option>
                             <option value="mobilenetv2">MobileNetV2 (Lightweight Dynamic)</option>
@@ -289,7 +289,7 @@
                     </div>
 
                     <!-- Static Parameter Ratio Slider (rho) -->
-                    <div class="space-y-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="space-y-2 p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <div class="flex justify-between items-center">
                             <label class="text-xs font-bold text-slate-200 uppercase tracking-wider">Static Parameter Ratio (&rho;<sub>static</sub>)</label>
                             <span id="val-static-ratio" class="text-lg font-extrabold text-brand-400 font-mono">60%</span>
@@ -305,7 +305,7 @@
                     <!-- Formula breakdown box -->
                     <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
                         <div class="text-slate-600 font-bold uppercase tracking-wider">Parameter Synthesis Equation</div>
-                        <div class="p-3 rounded-lg bg-slate-950 font-mono text-cyan-300 text-center overflow-x-auto" id="formula-display">
+                        <div class="p-3 rounded-lg bg-slate-50 font-mono text-slate-800 border border-slate-200 text-center overflow-x-auto" id="formula-display">
                             W(x) = M ⊙ (∑ αₖ(x) W_dynᵏ) + (1 - M) ⊙ W_static
                         </div>
                         <p class="text-slate-600 text-xs leading-relaxed" id="formula-desc">
@@ -318,7 +318,7 @@
                 <div class="lg:col-span-7 space-y-6">
                     <!-- Metric Cards Row -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1">
                             <div class="text-xs font-medium text-slate-600 uppercase font-bold tracking-wider">Total Params</div>
                             <div id="metric-params" class="text-xl font-bold font-mono text-white">19.8 M</div>
                             <div id="metric-params-baseline" class="text-xs text-slate-600 line-through">44.8 M</div>
@@ -328,12 +328,12 @@
                             <div id="metric-savings" class="text-xl font-bold font-mono text-brand-400">-55.8%</div>
                             <div class="text-xs text-brand-300/80 font-medium">vs. Full Dynamic</div>
                         </div>
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1">
                             <div class="text-xs font-medium text-slate-600 uppercase font-bold tracking-wider">Comp. FLOPs</div>
                             <div id="metric-flops" class="text-xl font-bold font-mono text-cyan-400">1.82 G</div>
                             <div class="text-xs text-slate-600">Zero FLOP bloat</div>
                         </div>
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center space-y-1">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1">
                             <div class="text-xs font-medium text-slate-600 uppercase font-bold tracking-wider">Top Metric</div>
                             <div id="metric-acc" class="text-xl font-bold font-mono text-emerald-400">72.5%</div>
                             <div id="metric-acc-retention" class="text-xs text-emerald-400/80">99.7% Capacity</div>
@@ -341,7 +341,7 @@
                     </div>
 
                     <!-- Parameter Subspace Matrix Visualizer -->
-                    <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
                         <div class="flex items-center justify-between text-xs font-semibold">
                             <span class="text-slate-300 flex items-center space-x-2">
                                 <i class="fa-solid fa-table-cells text-brand-400"></i>
@@ -506,7 +506,7 @@
                 </div>
 
                 <!-- Code Content -->
-                <div class="p-6 bg-dark-950 font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed" id="code-snippet-box">
+                <div class="p-6 bg-dark-950 font-mono text-xs sm:text-sm text-slate-800 overflow-x-auto leading-relaxed" id="code-snippet-box">
                     <!-- Injected by JS -->
                 </div>
             </div>
@@ -525,7 +525,7 @@
                 </button>
             </div>
 
-            <pre class="p-5 rounded-2xl bg-dark-950 border border-slate-800/80 font-mono text-xs text-slate-300 overflow-x-auto leading-relaxed"><code id="bibtex-block">@inproceedings{he-etal-2023-pad,
+            <pre class="p-5 rounded-2xl bg-dark-950 border border-slate-800/80 font-mono text-xs text-slate-800 overflow-x-auto leading-relaxed"><code id="bibtex-block">@inproceedings{he-etal-2023-pad,
   title     = "{PAD}-Net: An Efficient Framework for Dynamic Networks",
   author    = "He, Shwai and
                Ding, Liang and
